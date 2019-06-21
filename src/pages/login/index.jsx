@@ -10,8 +10,26 @@ class Login extends Component {
   validator=(rule,value,callback)=>{
     const name = rule.fullField === 'username'?'用户名':'密码';
     if(!value){
-      callback('用户名不能为空')
+      callback(`${name}不能为空！`)
+    }else if (value.length < 4){
+      callback(`${name}长度不能小于4`)
+    } else if (value.length > 10){
+      callback(`${name}长度不能大于10`)
+    } else if (!/^[a-zA-Z0-9_]+$/.test(value)){
+      callback(`${name}只能包含数字字母下划线`)
+    } else {
+      callback();
     }
+  };
+
+  handleSubmit=(e)=>{
+    e.preventDefault();
+    this.props.form.validateFields((errors,values)=>{
+      if (!errors){
+        const { username, password } =values;
+        console.log(username,password);
+      }
+    })
   };
 
   render() {
@@ -24,7 +42,7 @@ class Login extends Component {
       </header>
       <section className="login-form">
         <h2>用户登录</h2>
-        <Form>
+        <Form onSubmit={this.handleSubmit}>
           <Item>
             {
               getFieldDecorator('username',{
