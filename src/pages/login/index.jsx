@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { Form, Icon, Input, Button } from 'antd';
+import { Form, Icon, Input, Button, message } from 'antd';
 import logo from './logo.png';
 import './index.less';
+import { reqLogin } from '../../api'
 
 const Item = Form.Item;
 
@@ -24,10 +25,17 @@ class Login extends Component {
 
   handleSubmit=(e)=>{
     e.preventDefault();
-    this.props.form.validateFields((errors,values)=>{
-      if (!errors){
-        const { username, password } =values;
-        console.log(username,password);
+    this.props.form.validateFields(async (errors,values)=>{
+      if(!errors){
+        const { username, password } = values;
+        const result= await reqLogin(username,password);
+        if(result){
+          this.props.history.replace('/')
+        }else {
+          this.props.form.resetFields(['password']);
+        }
+      }else {
+        console.log(errors)
       }
     })
   };
