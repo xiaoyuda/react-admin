@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import LeftMenu from '../../cpmponents/left-menu'
-import { Layout, Breadcrumb } from 'antd';
+import { Layout } from 'antd';
 import HeaderMain from '../../cpmponents/header-main';
 import ContentMain from '../../cpmponents/content-main';
 
