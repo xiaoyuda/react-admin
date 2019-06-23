@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Form, Icon, Input, Button, message } from 'antd';
-import logo from './logo.png';
+import logo from '../../assets/images/logo.png';
 import './index.less';
 import { reqLogin } from '../../api'
 
