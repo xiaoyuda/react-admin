@@ -29,7 +29,7 @@ export default class Admin extends Component {
   async componentWillMount () {
     const user = getItem();
 
-    //防止user被篡改为空：这样读取undefind的_id属性会报错；
+    /*//防止user被篡改为空：这样读取undefind的_id属性会报错；
     if(! user || ! user._id ){
         //看用户有没有登录过，没有登录过返回值为{}，是没有_id的；
         this.props.history.replace('/login');
@@ -39,7 +39,20 @@ export default class Admin extends Component {
         if(!result){
           this.props.history.replace('/login');
         }
+    }*/
+
+    if( user &&  user._id ){
+      const result =await reqValidatorUser(user._id);
+      if(result){
+
+      }else {
+        this.props.history.replace('/login');
+      }
+    }else {
+      this.props.history.replace('/login');
     }
+
+
   }
 
   render() {
