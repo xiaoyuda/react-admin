@@ -3,6 +3,7 @@ import { Form, Icon, Input, Button } from 'antd';
 import logo from '../../assets/images/logo.png';
 import './index.less';
 import { reqLogin } from '../../api'
+import { setItem } from '../../utils/storage-tool'
 
 const Item = Form.Item;
 
@@ -30,6 +31,7 @@ function Login (props) {
         const { username, password } = values;
         const result= await reqLogin(username,password);
         if(result){
+          setItem(result.data);
           props.history.replace('/')
         }else {
           props.form.resetFields(['password']);
@@ -59,7 +61,7 @@ function Login (props) {
                   {min:4,message:'用户名最小为4'},
                   {max:10,message:'用户名最大为10'},
                   {pattern:/^[a-zA-Z0-9_]+$/,message:'用户名只能包含数字字母下划线'}*/
-                {validator:validator}
+                {validator}
               ]
               })(
                 <Input className="login-input"
@@ -72,7 +74,7 @@ function Login (props) {
           <Item>
             {
               getFieldDecorator('password',{
-                rules:[{validator:validator}]
+                rules:[{validator}]
               })(
                 <Input className="login-input"
                        type="password"
