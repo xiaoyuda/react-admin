@@ -57,7 +57,9 @@ class HeaderMain extends Component {
   async componentWillMount() {
     this.username = getItem().username;
     this.getTitle(this.props);
-    const { weather, weatherImg } = await getWeather();
+    const { promise, cancel } = getWeather();
+    this.cancel =cancel;
+    const { weather, weatherImg } = await promise;
     this.setState({
       weather,
       weatherImg
@@ -65,13 +67,17 @@ class HeaderMain extends Component {
   }
 
   componentDidMount() {
-    setInterval(()=>{
+    this.timeId=setInterval(()=>{
       this.setState({
         currentTime:Date.now()
       })
     },1000)
   }
 
+  componentWillUnmount() {
+    clearInterval(this.timeId);
+    this.cancel();
+  }
 
   render() {
     

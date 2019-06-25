@@ -15,8 +15,9 @@ export function reqCategory(parentId) {
 }
 
 export function getWeather() {
-  return new Promise((resolve)=>{
-    jsonp('http://api.map.baidu.com/telematics/v3/weather?location=深圳&output=json&ak=3p49MVra6urFRGOT9s8UBWr2',{},(err,res)=>{
+  let cancel = null;
+  const promise = new Promise((resolve)=>{
+    cancel = jsonp('http://api.map.baidu.com/telematics/v3/weather?location=深圳&output=json&ak=3p49MVra6urFRGOT9s8UBWr2',{},(err,res)=>{
       if (!err){
         const { weather,dayPictureUrl } = res.results[0].weather_data[0];
         resolve({ weather, weatherImg:dayPictureUrl })
@@ -26,4 +27,8 @@ export function getWeather() {
       }
     })
   });
+  return {
+    promise,
+    cancel
+  }
 }
