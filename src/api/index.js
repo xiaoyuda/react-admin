@@ -14,6 +14,14 @@ export function reqCategory(parentId) {
   return ajax('/manage/category/list',{parentId},'get')
 }
 
+export function addCategory(parentId, categoryName) {
+  return ajax('/manage/category/add',{parentId, categoryName},'post')
+}
+
+export function reqUpdateCategoryName(categoryId,categoryName) {
+  return ajax('/manage/category/update',{categoryId,categoryName},'post')
+}
+
 export function getWeather() {
   let cancel = null;
   const promise = new Promise((resolve)=>{

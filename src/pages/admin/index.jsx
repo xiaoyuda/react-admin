@@ -86,6 +86,5 @@ export default class Admin extends Component {
         <Footer style={{ textAlign: 'center' }}>推荐使用谷歌浏览器，可以获得更佳页面操作体验</Footer>
       </Layout>
     </Layout>:<Redirect to="/login"/>
-
   }
 }

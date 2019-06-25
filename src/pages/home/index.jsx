@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-// import {getItem} from "../../utils/storage-tool";
-import {reqValidatorUser} from "../../api";
 
 export default class Home extends Component {
   render() {
