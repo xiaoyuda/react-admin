@@ -11,6 +11,7 @@ export function reqValidatorUser(id) {
 }
 
 export function reqCategory(parentId) {
+  // console.log(parentId)
   return ajax('/manage/category/list',{parentId},'get')
 }
 

@@ -10,6 +10,8 @@ class UpdateCategory extends Component {
   validator=(rule,value,callback)=>{
     if(!value){
       callback('请输入品类名称')
+    } else{
+      callback()
     }
   };
 

@@ -2,21 +2,21 @@ import React, { Component } from 'react';
 import { Card, Button, Icon, Table, Modal, message } from "antd";
 import  AddCategory  from '../../cpmponents/add-category';
 import MyButton from '../../cpmponents/my-button';
-import { addCategory, reqUpdateCategoryName } from '../../api';
+import { addCategory, reqUpdateCategoryName, reqCategory } from '../../api';
 import UpdateCategory from '../../cpmponents/update-category';
 import './index.less';
-
-import { reqCategory } from '../../api';
-
-
 
 export default class Category extends Component {
 
   state={
     category:[],
+    secondCategory:[],
+    isSecond:false,
     isShowAddCategory:false,
     isShowUpdateCategory:false,
-    categoryName:''
+    categoryName:'',
+    secCategoryName:"",
+    isLoading:true,
   };
 
   async componentDidMount() {
@@ -24,6 +24,7 @@ export default class Category extends Component {
    if(result){
      this.setState({
        category:result.data,
+       isLoading:false
      })
    }
   }
@@ -43,8 +44,8 @@ export default class Category extends Component {
   AddCategory=()=>{
     //验证通过添加分类
     const { form } = this.addCategoryForm.props;
-    form.validateFields(async (errors,values)=>{
-      if(!errors){
+    form.validateFields(async (error,values)=>{
+      if(!error){
         const { parentId, categoryName } = values;
         const result = await addCategory(parentId,categoryName);
         if(result){
@@ -53,6 +54,11 @@ export default class Category extends Component {
           if(parentId === "0"){
             this.setState({
               category:[...this.state.category,result.data]
+            })
+          }else {
+            //二级分类也要显示
+            this.setState({
+              secondCategory:[...this.state.secondCategory,result.data]
             })
           }
           this.setState({
@@ -77,39 +83,49 @@ export default class Category extends Component {
   };
 
   updateCategory =async ()=>{
+
+
     const { form } = this.updateCategoryForm.props;
-    const { categoryName, categoryId } =this.state;
-
-    //先校验名字是不是和之前一样
-    const newCategoryName = form.getFieldValue("categoryName");
-    if( newCategoryName === categoryName){
-      return message.error("名字未更改，请检查后重试~")
+    const { categoryName, categoryId, isSecond } =this.state;
+    let needUpcategory = "category";
+    if(isSecond){
+      needUpcategory = "secondCategory";
     }
 
-    //发送请求
-    const result = await reqUpdateCategoryName(categoryId,newCategoryName);
-    if(result.status === 0){
-      message.success('修改成功~~');
-      //要把内容改成修改后的内容
-      //老师不希望修改原来的category，所以要造一个一模一样的，但是改变修改的内容
-      const newCategory=this.state.category.map((item)=>{
-        if(item._id === categoryId){
-          const { _id, parentId  } = item;
-          return {
-            _id,
-            name:newCategoryName,
-            parentId
-          }
+    form.validateFields(async (error,values)=>{
+      if(!error){
+        //先校验名字是不是和之前一样
+        if( values.categoryName === categoryName){
+          return message.error("名字未更改，请检查后重试~")
         }
-        return item;
-      });
-      this.setState({
-        category:newCategory
-      })
-    }
-    form.resetFields();
-    this.setState({
-      isShowUpdateCategory:false,
+
+        //发送请求
+        const result = await reqUpdateCategoryName(categoryId,values.categoryName);
+        if(result.status === 0){
+          message.success('修改成功~~');
+          //要把内容改成修改后的内容
+          //老师不希望修改原来的category，所以要造一个一模一样的，但是改变修改的内容
+          const newCategory=this.state[needUpcategory].map((item)=>{
+            if(item._id === categoryId){
+              const { _id, parentId  } = item;
+              return {
+                _id,
+                name:values.categoryName,
+                parentId
+              }
+            }
+            return item;
+          });
+          this.setState({
+            [needUpcategory]:newCategory
+          })
+        }
+        form.resetFields();
+        this.setState({
+          isShowUpdateCategory:false,
+        })
+      }
+
     })
   };
 
@@ -120,7 +136,34 @@ export default class Category extends Component {
     })
   };
 
+  showSecondCategory=(category)=>{
+    return async ()=>{
+      //发送请求二级菜单数据
+      this.setState({
+        isLoading:true
+      });
+     const result = await reqCategory(category._id);
+     if(result){
+       this.setState({
+         secondCategory:result.data,
+         isSecond:true,
+         secCategoryName:category.name,
+         isLoading:false
+       })
+     }
+    }
+
+  };
+
+  goBack=()=>{
+    this.setState({
+      isSecond:false
+    })
+  };
+
   render() {
+    const { category, secondCategory ,isSecond,isShowAddCategory, isShowUpdateCategory, categoryName, secCategoryName, isLoading } = this.state;
+
     const columns = [
       {
         title: '品类名称',
@@ -132,19 +175,16 @@ export default class Category extends Component {
         // dataIndex: 'operation',
         render: text => <div>
           <MyButton onClick={this.showUpdateCategory(text.name,text._id)}>修改内容</MyButton>
-          <MyButton >查看其子品类</MyButton>
+          { isSecond? null:<MyButton onClick={this.showSecondCategory(text)}>查看其子品类</MyButton> }
         </div>,
       },
     ];
 
-    const { category, isShowAddCategory, isShowUpdateCategory, categoryName } = this.state;
-
-
     return (
-      <Card title="一级分类列表" extra={<Button type="primary" onClick={this.showAddCategory}><Icon type="plus" />添加分类</Button>} style={{ width: "100% "}}>
+      <Card title={isSecond?<div><MyButton onClick={this.goBack}>一级分类</MyButton><Icon type="arrow-right" />{secCategoryName}</div>:"一级分类列表"} extra={<Button type="primary" onClick={this.showAddCategory}><Icon type="plus" />添加分类</Button>} style={{ width: "100% "}}>
         <Table
           columns={columns}
-          dataSource={category}
+          dataSource={isSecond?secondCategory:category}
           bordered
           pagination={{
             pageSize:3,
@@ -152,6 +192,7 @@ export default class Category extends Component {
             pageSizeOptions:["3","6","9"]
           }}
           rowKey="_id"
+          loading={isLoading}
         />
         <Modal
           title="添加分类"

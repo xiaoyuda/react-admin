@@ -29,7 +29,11 @@ class HeaderMain extends Component {
   };
 
   getTitle=(props)=>{
-    const { pathname } = props.location;
+    let { pathname } = props.location;
+    const pathReg = /^\/product\//;
+    if(pathReg.test(pathname)){
+      pathname = "/product"
+    }
     for (let i = 0; i < menuList.length; i++) {
       const menu = menuList[i];
       if(menu.children){

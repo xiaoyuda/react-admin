@@ -30,7 +30,12 @@ class LeftMenu extends Component {
 
     //处理默认选中的问题
     //首先获取当前页面的路径//注意：当前页面不是路由组件，所以是没有路由属性的，要通过withRouter传递
-    const { pathname } = this.props.location;
+    let { pathname } = this.props.location;
+
+    const pathReg = /^\/product\//;
+    if(pathReg.test(pathname)){
+      pathname = "/product"
+    }
     //解决地址栏没有匹配的，要默认到/home的问题
     let isHome = true;
     //二级菜单的默认展开问题？如若选中的是二级菜单，需要获取父级，此操作建议在菜单生成中操作//pathname要一次性获取，不要在遍历中获取

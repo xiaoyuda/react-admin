@@ -4,8 +4,8 @@ import {message} from "antd";
 export default function ajax(url,data,method) {
   let reqParams = data;
   method = method.toLowerCase();
-  if (method === "GET"){
-    reqParams ={ parmas:data }
+  if (method === "get"){
+    reqParams ={ params:data }
   }
    return axios[method](url,reqParams)
     .then((res)=>{
