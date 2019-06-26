@@ -11,7 +11,6 @@ export function reqValidatorUser(id) {
 }
 
 export function reqCategory(parentId) {
-  // console.log(parentId)
   return ajax('/manage/category/list',{parentId},'get')
 }
 
@@ -21,6 +20,10 @@ export function addCategory(parentId, categoryName) {
 
 export function reqUpdateCategoryName(categoryId,categoryName) {
   return ajax('/manage/category/update',{categoryId,categoryName},'post')
+}
+
+export function reqProductList(pageNum,pageSize) {
+  return ajax('/manage/product/list',{ pageNum,pageSize },'get')
 }
 
 export function getWeather() {
