@@ -2,31 +2,26 @@ import ajax from './ajax';
 import jsonp from 'jsonp';
 import { message } from 'antd';
 
-export function reqLogin(username, password) {
-  return ajax('/login',{username,password},'post')
-}
+export const reqLogin =(username, password) =>ajax('/login',{username,password},'post');
 
-export function reqValidatorUser(id) {
-  return ajax('/validator/user',{id},'post')
-}
 
-export function reqCategory(parentId) {
-  return ajax('/manage/category/list',{parentId},'get')
-}
+export const reqValidatorUser = (id) => ajax('/validator/user',{id},'post')
 
-export function addCategory(parentId, categoryName) {
-  return ajax('/manage/category/add',{parentId, categoryName},'post')
-}
 
-export function reqUpdateCategoryName(categoryId,categoryName) {
-  return ajax('/manage/category/update',{categoryId,categoryName},'post')
-}
+export const reqCategory = (parentId) => ajax('/manage/category/list',{parentId},'get')
 
-export function reqProductList(pageNum,pageSize) {
-  return ajax('/manage/product/list',{ pageNum,pageSize },'get')
-}
 
-export function getWeather() {
+export const addCategory = (parentId, categoryName) => ajax('/manage/category/add',{parentId, categoryName},'post');
+
+
+export const reqUpdateCategoryName=(categoryId,categoryName)=> ajax('/manage/category/update',{categoryId,categoryName},'post');
+
+
+export const reqProductList=(pageNum,pageSize)=> ajax('/manage/product/list',{ pageNum,pageSize },'get');
+
+export const reqAddProduct =({name, price, desc, pCategoryId, categoryId, detail})=> ajax('/manage/product/add',{name, price, pCategoryId, desc, categoryId, detail},'post');
+
+export const getWeather=()=> {
   let cancel = null;
   const promise = new Promise((resolve)=>{
     cancel = jsonp('http://api.map.baidu.com/telematics/v3/weather?location=深圳&output=json&ak=3p49MVra6urFRGOT9s8UBWr2',{},(err,res)=>{
@@ -43,4 +38,4 @@ export function getWeather() {
     promise,
     cancel
   }
-}
+};

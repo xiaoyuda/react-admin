@@ -13,23 +13,35 @@ export default class Index extends Component {
 
   state={
     products:[],
+    total:0,
+    isloading:true
   };
 
-  async componentDidMount() {
-    const result = await reqProductList(1,3);
+  componentDidMount() {
+    this.getProduct(1,3);
+
+  }
+
+  getProduct= async (pageNum,pageSize)=>{
+    this.setState({
+      isloading:true
+    });
+    const result = await reqProductList(pageNum,pageSize);
     if(result){
       this.setState({
-        products:result.data.list
+        products:result.data.list,
+        total:result.data.total,
+        isloading:false
       })
     }
-  }
+  };
 
   goSaveUpdate=()=>{
     this.props.history.push('/product/saveupdate');
   };
 
   render() {
-    const { products } = this.state;
+    const { products, total, isloading } = this.state;
 
     const columns=[
       {
@@ -81,14 +93,17 @@ export default class Index extends Component {
     dataSource={products}
     columns={columns}
     bordered
+    loading={isloading}
     pagination={{
       showQuickJumper:true,
       showSizeChanger:true,
       defaultPageSize:3,
-      pageSizeOptions:["3","6","9"]
+      pageSizeOptions:["3","6","9"],
+      onChange:this.getProduct,
+      onShowSizeChange:this.getProduct,
+      total
     }}
     >
-
     </Table>
     </Card>;
   }
