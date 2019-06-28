@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Card, Form, Icon, Input, Button, Select, Table } from 'antd';
 import MyButton from '../../../cpmponents/my-button';
-import { reqProductList } from '../../../api';
+import { reqProductList, reqSearchProductList } from '../../../api';
 
 import './index.less'
 
@@ -14,7 +14,12 @@ export default class Index extends Component {
   state={
     products:[],
     total:0,
-    isloading:true
+    isloading:true,
+    searchType:"productName",
+    searchContent:"",
+    pageNum:1,
+    pageSize:3,
+    isSearch:false
   };
 
   componentDidMount() {
@@ -26,20 +31,49 @@ export default class Index extends Component {
     this.setState({
       isloading:true
     });
-    const result = await reqProductList(pageNum,pageSize);
+    const { searchType, searchContent } = this.state;
+    let promise = null;
+    if(searchContent){
+      promise = reqSearchProductList({searchType, searchContent, pageNum, pageSize});
+    }else {
+      promise = reqProductList(pageNum,pageSize);
+    }
+    const result = await promise;
     if(result){
       this.setState({
         products:result.data.list,
         total:result.data.total,
-        isloading:false
+        isloading:false,
+        pageNum,
+        pageSize
       })
+    }
+  };
+
+  updateProduct=(product)=>{
+    return ()=>{
+      this.props.history.push('/product/saveupdate',product);
     }
   };
 
   goSaveUpdate=()=>{
     this.props.history.push('/product/saveupdate');
   };
+  
+  handleChange(stateName){
+    return (e)=>{
+      e = e.target? e.target.value : e; 
+      this.setState({
+        [stateName]:e
+      })
+    }
+  }
 
+  search = async ()=>{
+    const { pageNum ,pageSize } = this.state;
+    this.getProduct( pageNum, pageSize )
+  };
+  
   render() {
     const { products, total, isloading } = this.state;
 
@@ -71,20 +105,20 @@ export default class Index extends Component {
       {
         title:"操作",
         className:"product-status",
-        render: data=>{
-          return <div><MyButton>详情</MyButton><MyButton>修改</MyButton></div>
+        render: product=>{
+          return <div><MyButton>详情</MyButton><MyButton onClick={this.updateProduct(product)}>修改</MyButton></div>
         }
       }
     ];
 
     return <Card
       title={<div>
-        <Select defaultValue={0}>
-        <Option key={0} value={0}>根据商品名称</Option>
-        <Option key={1} value={1}>根据商品描述</Option>
+        <Select defaultValue={"productName"} onChange={this.handleChange('searchType')}>
+        <Option key={0} value={"productName"}>根据商品名称</Option>
+        <Option key={1} value={"productDesc"}>根据商品描述</Option>
       </Select>
-      <Input placeholder="关键字" className="search-input"/>
-        <Button type="primary">搜索</Button>
+      <Input placeholder="关键字" className="search-input" onChange={this.handleChange('searchContent')}/>
+        <Button type="primary" onClick={this.search}>搜索</Button>
       </div>}
 
       extra={<Button type="primary" onClick={this.goSaveUpdate}><Icon type="plus"/>添加产品</Button>}
@@ -94,6 +128,7 @@ export default class Index extends Component {
     columns={columns}
     bordered
     loading={isloading}
+    rowKey="_id"
     pagination={{
       showQuickJumper:true,
       showSizeChanger:true,

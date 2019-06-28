@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { Card, Icon, Form, Input, Cascader, InputNumber, Button, message } from 'antd';
-import { reqCategory, reqAddProduct } from '../../../api';
+import { reqCategory, reqAddProduct, reqUpdateProduct } from '../../../api';
 import RichTextEditor from "./rich-text-editor";
 import { convertToRaw } from 'draft-js';
+import PictureWall from './picture-wall';
 
 import './index.less';
 import draftToHtml from "draftjs-to-html";
@@ -55,9 +56,22 @@ class SaveUpdate extends Component {
         const detail = draftToHtml(convertToRaw(this.richTextRef.current.state.editorState.getCurrentContent()));
 
         //拿完可以发请求了
-        const result = await reqAddProduct({name, price, categoryId, pCategoryId, detail, desc})
+        const product = this.props.location.state;
+        const reqProduct ={name, price, categoryId, pCategoryId, detail, desc};
+        let promise = null;
+        if(product){
+          reqProduct._id=product._id;
+          promise = reqUpdateProduct(reqProduct);
+        }else {
+          promise = reqAddProduct(reqProduct);
+        }
+        const result = await promise;
         if (result){
-          message.success("添加商品成功~")
+          if(product){
+            message.success("更新商品成功~")
+          }else {
+            message.success("添加商品成功~")
+          }
         }
       }
     })
@@ -68,19 +82,74 @@ class SaveUpdate extends Component {
   };
 
   async componentDidMount() {
+    //不管是添加还是更新都要请求一级数据
+    const product = this.props.location.state;
     const result = await reqCategory("0");
     if(result){
-      this.setState({
-        productList:result.data.map((item)=>{
-          return {
-            value:item._id,
-            label:item.name,
-            isLeaf: false
+      //先判断是添加还是更新
+      if(product){
+        //这是更新
+        this.categories=[];
+        if(product.pCategoryId !== "0"){
+          this.categories.push(product.pCategoryId)
+        }
+        this.categories.push(product.categoryId);
+        if(product.pCategoryId === "0"){
+          this.setState({
+            productList:result.data.map((item)=>{
+              return {
+                value:item._id,
+                label:item.name,
+                isLeaf: false
+              }
+            })
+          })
+        }else{//注重！！！！二级分类的请求
+          const secResult = await reqCategory(product.pCategoryId);
+          if(secResult){
+            const children = secResult.data.map((sec)=>{
+              return{
+                value:sec._id,
+                label:sec.name,
+              }
+            });
+            this.setState({
+              productList:result.data.map((item)=>{
+                //判断条件写错了
+                if( item._id === product.pCategoryId){
+                  return {
+                    value:item._id,
+                    label:item.name,
+                    isLeaf: false,
+                    children
+                  }
+                }else {
+                  return{
+                    value:item._id,
+                    label:item.name,
+                    isLeaf: false,
+                  }
+                }
+              })
+            })
           }
-        })
-      })
+        }
+      }else {
+        //这是添加
+          this.setState({
+            productList:result.data.map((item)=>{
+              return {
+                value:item._id,
+                label:item.name,
+                isLeaf: false
+              }
+            })
+          })
+      }
     }
   }
+
+
 
   render() {
     const { getFieldDecorator } = this.props.form;
@@ -94,6 +163,8 @@ class SaveUpdate extends Component {
       }
     };
 
+    const product = this.props.location.state;
+
     return <Card
     title={<div className="title-icon">
       <Icon type="arrow-left" onClick={this.goBack}/>
@@ -106,11 +177,14 @@ class SaveUpdate extends Component {
               'name',
               {
                 rules:[{
-                  required:true,message:"商品名称不能为空！"
-                }]
+                  required:true,
+                  message:"商品名称不能为空！",
+                }],
+                initialValue: product?product.name:"",
               }
             )(
-              <Input placeholder="请输入商品名称"/>
+              <Input placeholder="请输入商品名称"
+                     />
             )
           }
         </Item>
@@ -120,8 +194,9 @@ class SaveUpdate extends Component {
               'desc',
               {
                 rules:[{
-                  required:true,message:"商品描述不能为空！"
-                }]
+                  required:true,message:"商品描述不能为空！",
+                }],
+                initialValue: product? product.desc: ""
               }
             )(
               <Input placeholder="请输入商品描述"/>
@@ -133,8 +208,9 @@ class SaveUpdate extends Component {
             getFieldDecorator(
               'categoriesId',{
                 rules:[{
-                  required:true,message:"分类不能为空！"
-                }]
+                  required:true,message:"分类不能为空！",
+                }],
+                initialValue:product?this.categories:[]
               }
             )(
               <Cascader options={productList} loadData={this.loadData} placeholder="请选择分类"/>
@@ -146,8 +222,9 @@ class SaveUpdate extends Component {
             getFieldDecorator(
               'price',{
                 rules:[{
-                  required:true,message:"请输入价格"
-                }]
+                  required:true,message:"请输入价格",
+                }],
+                initialValue:product?product.price:""
               }
             )(
               <InputNumber
@@ -157,8 +234,11 @@ class SaveUpdate extends Component {
             )
           }
         </Item>
+        <Item label="商品图片">
+          <PictureWall imgs={product?product.imgs:[]} id={product?product._id:""}/>
+        </Item>
         <Item label="商品详情">
-          <RichTextEditor ref={this.richTextRef}/>
+          <RichTextEditor ref={this.richTextRef} detail={product?product.detail:""}/>
         </Item>
         <Button type="primary" htmlType="submit" className="submit">提交 </Button>
       </Form>
