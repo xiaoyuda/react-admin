@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
-import { Card, Form, Icon, Input, Button, Select, Table } from 'antd';
+import { Card, Icon, Input, Button, Select, Table } from 'antd';
 import MyButton from '../../../cpmponents/my-button';
 import { reqProductList, reqSearchProductList } from '../../../api';
 
 import './index.less'
 
-const { Item } = Form;
 const { Option } = Select;
 
 

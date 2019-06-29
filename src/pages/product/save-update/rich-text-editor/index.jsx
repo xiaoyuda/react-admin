@@ -23,7 +23,7 @@ export default class RichTextEditor extends Component {
   };
 
   componentDidMount() {
-    const { editorState } = this.state;
+    // const { editorState } = this.state;
     const contentBlock = htmlToDraft(this.props.detail);
     if (contentBlock) {
       const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);

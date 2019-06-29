@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { Card, Button, Table, Modal } from 'antd';
+import { Card, Button, Table, Modal, message } from 'antd';
 import dayjs from "dayjs";
 
 import AddUserForm from './add-user-form';
 import UpdateUserForm from './update-user-form';
 import MyButton from '../../cpmponents/my-button';
-import { reqUserList } from '../../api'
+import { reqUserList, reqAddUser } from '../../api'
 
 export default class Role extends Component {
   state = {
@@ -20,19 +20,35 @@ export default class Role extends Component {
     }], //用户数组
     isShowAddUserModal: false, //是否展示创建用户的标识
     isShowUpdateUserModal: false, //是否展示更新用户的标识
+    roles:[]
   };
   
   async componentDidMount() {
     const result = await reqUserList();
     if(result){
+      console.log(result.data.roles)
       this.setState({
-        users:result.data.users
+        users:result.data.users,
+        roles:result.data.roles
       })
     }
   }
 
   //创建用户的回调函数
-  addUser = () => {};
+  addUser = () => {
+    this.addUserForm.props.form.validateFields( async (err,values)=>{
+      if(!err){
+        const result = await reqAddUser(values);
+        if(result){
+          console.log(result)
+          message.success("创建用户成功~");
+          /*this.setState({
+            users:[...this.state.users,result.data]
+          })*/
+        }
+      }
+    })
+  };
   
   updateUser = () => {
   
@@ -43,7 +59,7 @@ export default class Role extends Component {
   };
   
   render () {
-    const {users, isShowAddUserModal, isShowUpdateUserModal} = this.state;
+    const {users, isShowAddUserModal, isShowUpdateUserModal, roles} = this.state;
 
     const columns = [
       {
@@ -65,8 +81,8 @@ export default class Role extends Component {
       },
       {
         title: '所属角色',
-        dataIndex: 'role_id',
-        render: id => this.state.
+        dataIndex: '_id',
+        render: _id => { console.log(_id) }
       },
       {
         title: '操作',
@@ -102,11 +118,11 @@ export default class Role extends Component {
           title="创建用户"
           visible={isShowAddUserModal}
           onOk={this.addUser}
-          onCancel={this.toggleDisplay('isShowAddUserModal', true)}
+          onCancel={this.toggleDisplay('isShowAddUserModal', false)}
           okText='确认'
           cancelText='取消'
         >
-          <AddUserForm wrappedComponentRef={(form) => this.addUserForm = form}/>
+          <AddUserForm wrappedComponentRef={(form) => this.addUserForm = form} roles={roles?roles:[]}/>
         </Modal>
   
         <Modal
@@ -117,7 +133,7 @@ export default class Role extends Component {
           okText='确认'
           cancelText='取消'
         >
-          <UpdateUserForm wrappedComponentRef={(form) => this.updateUserForm = form}/>
+          <UpdateUserForm wrappedComponentRef={(form) => this.updateUserForm = form} />
         </Modal>
         
       </Card>
